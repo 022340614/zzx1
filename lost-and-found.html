@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学院失物招领系统 - 022340614</title>
     <meta name="description" content="学院失物招领网站，支持用户注册登录、发布启事、搜索筛选、留言沟通和管理员后台管理">
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="lost-found-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
@@ -2392,6 +2393,108 @@
         document.querySelector('.search-bar .search-input')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 document.querySelector('.search-bar .btn-primary').click();
+            }
+        });
+    </script>
+    
+    <!-- 引入外部JavaScript文件 -->
+    <script src="lost-found-app.js"></script>
+    <script>
+        // 全局错误处理
+        window.addEventListener('error', function(event) {
+            console.error('全局错误:', event.error);
+            
+            // 显示用户友好的错误提示
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ef4444;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 0.75rem;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                z-index: 9999;
+                max-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            errorDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>系统出现错误，请刷新页面重试</span>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 5000);
+        });
+
+        // 添加动画样式
+        if (!document.querySelector('#error-styles')) {
+            const style = document.createElement('style');
+            style.id = 'error-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOut {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 确保应用初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查应用是否已加载
+            if (typeof app === 'undefined') {
+                console.error('应用未正确加载，请检查JavaScript文件');
+                
+                // 显示错误提示
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #f59e0b;
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 0.75rem;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                    z-index: 9999;
+                    max-width: 400px;
+                    text-align: center;
+                `;
+                errorDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>应用加载失败，请刷新页面</span>
+                    </div>
+                `;
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => errorDiv.remove(), 5000);
+            } else {
+                console.log('失物招领系统已成功加载');
             }
         });
     </script>
