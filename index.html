@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学院失物招领系统 - 022340614</title>
     <meta name="description" content="学院失物招领网站，支持用户注册登录、发布启事、搜索筛选、留言沟通和管理员后台管理">
+    
+    <!-- PWA配置 -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="失物招领">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/4f46e5/ffffff?text=🔍">
+    
+    <!-- 样式表 -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="lost-found-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 图标 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <!-- 头部导航 -->
@@ -655,6 +667,117 @@
                 console.log('失物招领系统已成功加载');
             }
         });
+
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker 注册成功:', registration.scope);
+                        
+                        // 检查更新
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('Service Worker 更新发现:', newWorker.state);
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                console.log('Service Worker 状态变化:', newWorker.state);
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('新内容可用，请刷新页面');
+                                    // 可以在这里显示更新提示
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+
+        // PWA安装提示
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        installButton.innerHTML = '<i class="fas fa-download"></i> 安装应用';
+        installButton.className = 'btn btn-primary';
+        installButton.style.cssText = 'position: fixed; bottom: 80px; right: 20px; z-index: 1000; display: none;';
+        document.body.appendChild(installButton);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.style.display = 'block';
+            
+            installButton.addEventListener('click', () => {
+                installButton.style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('用户接受了PWA安装提示');
+                    } else {
+                        console.log('用户拒绝了PWA安装提示');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+
+        // 检测网络状态
+        window.addEventListener('online', () => {
+            console.log('网络已连接');
+            app.showAlert('网络已恢复连接', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('网络已断开');
+            app.showAlert('网络连接已断开，部分功能可能受限', 'warning');
+        });
+
+        // 初始化主题
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // 创建主题切换按钮
+            const themeToggle = document.createElement('button');
+            themeToggle.className = 'theme-toggle';
+            themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            themeToggle.title = savedTheme === 'dark' ? '切换到浅色主题' : '切换到深色主题';
+            themeToggle.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--primary);
+                color: white;
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                transition: all 0.3s ease;
+            `;
+            
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                themeToggle.title = newTheme === 'dark' ? '切换到浅色主题' : '切换到深色主题';
+                app.showAlert(`已切换到${newTheme === 'dark' ? '深色' : '浅色'}主题`, 'success');
+            });
+            
+            document.body.appendChild(themeToggle);
+        }
+
+        // 页面加载完成后初始化主题
+        document.addEventListener('DOMContentLoaded', initTheme);
     </script>
 </body>
 </html>
